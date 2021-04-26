@@ -1,0 +1,19 @@
+CREATE OR REPLACE TRIGGER AU_BALANCES_BISRT_FULL
+AFTER UPDATE ON BALANCES
+  FOR EACH ROW
+DECLARE
+  CURRENT_VERSION CONSTANT VARCHAR2(20) := '008.99';
+BEGIN
+  for REC in (select CTYP_CTYP_ID
+                from client_histories ch
+               where ch.clnt_clnt_id = :new.CLNT_CLNT_ID and
+                     sysdate between ch.start_date and ch.end_date
+                     and ch.ctyp_ctyp_id <> 14)
+  loop
+      return;
+  end loop;
+  BISRT_SYNC.ENQUEUE_SIGNAL(P_CORRELATION => 3,
+                 P_CLNT_ID => :NEW.CLNT_CLNT_ID,
+                 P_BALANCE_$ => :NEW.BALANCE_$,
+                 P_MSG_DATE => SYSTIMESTAMP);  
+END AU_BALANCES_BISRT_FULL;
