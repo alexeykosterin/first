@@ -1,0 +1,1 @@
+for /F "delims=" %%i in (tables.txt) do spool.ALPHA.bat %%i

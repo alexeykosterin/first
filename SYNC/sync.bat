@@ -1,0 +1,1 @@
+for /f "tokens=* eol=, delims=;" %%i in (column_name.txt) do (secondStep.bat %%i)

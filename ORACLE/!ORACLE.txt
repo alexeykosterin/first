@@ -1,0 +1,1128 @@
+http://codenet.ru/db/oracle/ora1/4.php
+справочник
+всё о курсорах, коллекциях и rturning
+https://oracle-patches.com/db/sql/3757-forall-%D0%B8-bulk-collect-%D1%83%D1%81%D0%BA%D0%BE%D1%80%D1%8F%D0%B5%D0%BC-%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%D1%8B-%D0%B2-pl-sql
+
+SYSDATE
+---первый день следующего месяца
+SELECT ADD_MONTHS(TRUNC(SYSDATE,'MM'),+1) FROM DUAL;
+---последний день следующего месяца
+SELECT last_day(ADD_MONTHS(TRUNC(SYSDATE,'MM'),+1)) FROM DUAL;
+---последняя секунда
+select trunc(add_months(last_day(sysdate)+1, 1), 'mm')-1/86400 from dual;
+SELECT to_char(sysdate, 'hh24:mi:ss') FROM dual
+
+18:00
+select trunc(sysdate+1)+3/4 from dual
+
+SET
+http://www.cyberguru.ru/database/oracle/sqlplus-scripts-page22.html
+
+Вставка 20 млн записей
+insert into sib_tmp_tst 
+select rownum Numbe, 'String #'||rownum Nam from (select level from dual connect by level < 2e4) t1, (select level from dual connect by level < 2e4) t2
+where rownum <= 2e7
+
+
+select chr( ascii('А')+level-1 ) from dual connect by level < 33
+
+
+order by NLSSORT(num_val, 'NLS_SORT = BINARY_CI') asc
+order by NLSSORT(column_name, 'NLS_SORT=BINARY');
+
+Писать в файл
+spool \\sib-bill-cmn01\Garbage\Rep_distrib\2016_08_22-r7.5-7.6\HRS_POST_RATING\hrs_post_rating-srv-057.02\distrib10\apl_registr_and
+select * from packs where pack_id in (11730)
+spool off 
+
+удалить пробелы
+regexp_replace( str, '[[:space:]]+', ' ' )
+или
+with x as (
+  select 'abc 123  234     5' str
+    from dual
+)
+select regexp_replace( str, '[[:space:]]+', ' ' )
+  from x
+удалить пробелы до запятой
+sed 's/\s+,/,/' myfile.csv 
+  
+поля в таблице
+select column_name 
+  from user_tab_columns 
+  where lower(table_name) = 'rate_plans'
+order by column_id
+в строчку
+select LISTAGG(column_name, ', ') WITHIN GROUP (order by column_id) as list
+from user_tab_columns t
+where lower(table_name) = 'rate_plans'
+---если размер превышает varhcar
+SELECT RTRIM(XMLAGG(XMLELEMENT(E,column_name||' '||data_type||'('||data_length||')',',').EXTRACT('//text()') 
+  ORDER BY column_name).GetClobVal(),',') as list from user_tab_columns
+  where table_name like 'RATE_PLANS';
+
+убрать пробелы
+select replace(replace(replace('a   a   a', ' ', ' _'), '_ '), '_') from dual;
+
+вывести последовательность
+SELECT 5430000 + LEVEL - 1 FROM dual CONNECT BY LEVEL <= 5569999 - 5430000 + 1;
+
+MAILSENDER
+
+CREATE OR REPLACE PROCEDURE BIS.SIB_TMP_PPA_MAILSENDER(sender    IN VARCHAR2,
+                                                       recipient IN VARCHAR,
+                                                       subject   IN VARCHAR2,
+                                                       message   IN VARCHAR2) AS
+   MESS VARCHAR2(32000);
+BEGIN
+   /*MESS := '<table border = "1" cellpadding="0" cellspacing="0"  width= "800" style="background-color:#e6e6e6; border:#24b76d" >
+    <tr height=30 style="color:white" bgcolor="#4d2c85">
+    <td align="Center"> MSISDN </td>
+    <td align="Center"> SUBS </td>
+    <td align="Center"> RTPL </td></tr>';
+   FOR REC IN (SELECT SH.SUBS_SUBS_ID,
+                      SH.RTPL_RTPL_ID,
+                      BIS.BIS_ENGINE.GET_MSISDN_BY_SUBS(SH.SUBS_SUBS_ID) AS MSISDN
+                 FROM BIS.SUBS_HISTORIES SH
+                WHERE SUBS_SUBS_ID = 132
+                  AND ROWNUM <= 3) LOOP
+      MESS := MESS || '<tr>
+                            <td align="Center">' || REC.MSISDN ||
+              '</td>
+                            <td align="Center">' || REC.SUBS_SUBS_ID ||
+              '</td>
+                            <td align="Center">' || REC.RTPL_RTPL_ID ||
+              '</td></tr>';
+   END LOOP;
+   MESS := MESS || '</table>';*/
+   --mess := 'дудос';
+
+   SYS.UTL_MAIL.SEND(SENDER     => sender,
+                     RECIPIENTS => recipient,
+                     SUBJECT    => subject,
+                     MESSAGE    => message,
+                     MIME_TYPE  => 'text/html; charset=windows-1251');
+
+   /*style="background-color:#ff0000; #ffffff*/
+   /*SIB-PAY_GATE*/
+END;
+
+Гранты на каталог для выполнения java
+select * from dba_java_policy where name like '%chr1%'
+выдача DBMS_JAVA.GRANT_PERMISSION('BIS_MON','SYS:java.io.FilePermission','/chr1/chr_center/iummon.txt','READ'); 
+
+зависимости
+select * from dba_dependencies
+
+
+https://docs.oracle.com/database/121/ARPLS/u_match.htm#ARPLS71221 
+Совпадение между двумя значениями
+SELECT UTL_MATCH.JARO_WINKLER_SIMILARITY(1, 1) FROM DUAL;
+SELECT UTL_MATCH.JARO_WINKLER('shackleford', 'shackelford') FROM DUAL;
+
+Удаляем всё, что не [^,]
+select regexp_replace('32,1251819954,,,250023043056777,79232504731,,20171128093221,1,0,,,,,,,,internet,,5404,138353677,,,,,,,,,,,,,,,,,sgw,,,,<GPRS><Node>1</Node><PDP>010.184.027.010</PDP><sgsn>083.149.062.221</sgsn><ggsn>083.149.062.169</ggsn><chrgID>1251819954</chrgID><duration>3583</duration><APN>internet</APN><VolIn>40</VolIn><VolOut>64</VolOut><sgsnChange></sgsnChange><QoSReq><delay>0</delay><mean>0</mean><peak>0</peak><prcdnc>0</prcdnc><rlblt>0</rlblt>
+</QoSReq> <QoSUse><delay>0</delay><mean>0</mean><peak>0</peak><prcdnc>0</prcdnc><rlblt>0</rlblt></QoSUse></GPRS>,,,,,,40,64,,,,,,,,,,,,3583
+','[^,]','',1,0,'i') from dual;
+
+Считаем кол-во "," в строке + 1 символ
+select (select (select max(case when instr(s1,s2,rownum)>0 then rownum else 0 end)
+        from   all_objects ao
+        where  rownum<=length(s1)) q
+from   (select ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,' as s1,
+               ',' as s2
+        from dual)) + 1 from dual
+DECLARE
+v_comma varchar2(3000) :=',a,b,c';
+v_num number;
+v_num2 varchar2(3000);
+BEGIN
+select regexp_replace(v_comma,'[^,]','',1,0,'i') into v_num2 from dual;
+select (select (select max(case when instr(s1,s2,rownum)>0 then rownum else 0 end) from  all_objects ao where  rownum<=length(s1)) q
+from   (select v_num2 as s1,',' as s2 from dual)) + 1 into v_num from dual;
+dbms_output.put_line(v_num);
+END;
+или так
+
+DECLARE
+v_comma varchar2(3000) :=',a,b,c';
+v_num number;
+v_num2 varchar2(3000);
+BEGIN
+select length(regexp_replace(v_comma,'[^,]','',1,0,'i')) + 1 into v_num from dual;
+dbms_output.put_line(v_num);
+END;
+
+select regexp_count('Mr S.Cra,shen, PhD','[,]') from dual;
+
+путь к трейс файлам
+select value from v$diag_info where name = 'Diag Trace'
+
+сколько осталось дней в текущем месяце
+select to_char(mon, 'month') mon_name
+     , to_char(mon, 'yyyy') yr
+     , count(*) cnt
+  from (select trunc(sysdate+level, 'MM') mon, level x from dual connect by level <= 100) 
+ group by mon
+ order by mon
+ 
+превратить последовательность в столбцы; обратный LISTAG
+SELECT REGEXP_SUBSTR('раз, два, три, четыре, пять', '[^, ]+', REGEXP_INSTR('раз, два, три, четыре, пять', '[^, ]+', 1, LEVEL, 0), 1)
+FROM DUAL
+CONNECT BY REGEXP_INSTR('раз, два, три, четыре, пять', '[^, ]+', 1, LEVEL) > 0 
+или
+with t as (select 'ZDSQF:ASFad,saasdasd1231234dsadsad' c from dual)
+select  REGEXP_SUBSTR(REGEXP_SUBSTR(c,'[^,]+', 1, level),'[^:]+', 1, 1) ASD from t
+connect by level<=length(REGEXP_REPLACE(c,'[^,]'))+1
+
+строковые функции
+https://kbss.ru/blog/oracledb/289.html
+
+----32 цикла, как символов в последовательности + сортировка (заглавные, прописные, цифры)
+------------------
+declare 
+v_int varchar(100) :='ZDSЖыфQFASFadsaasdasd1231234dsadФЖЫыжфsad';
+v_num varchar(100);
+v_num2 varchar(100);
+v_num3 varchar(100);
+v_num4 varchar(100);
+v_num5 varchar(100);
+v_num6 varchar(100);
+v_num7 varchar(100);
+v_i number :=0;
+begin
+delete sib_aak_number;
+delete sib_aak_number2;
+select regexp_replace(v_int,'[a-z|0-9|а-я|А-Я]','',1,0,'c') into v_num from dual;
+select regexp_replace(v_int,'[A-Z|0-9|а-я|А-Я]','',1,0,'c') into v_num2 from dual;
+select regexp_replace(v_int,'[A-Z|0-9|а-я]','',1,0,'i') into v_num5 from dual;
+select regexp_replace(v_int,'[A-Z|0-9|А-Я]','',1,0,'i') into v_num6 from dual;
+select regexp_replace(v_int,'[^0-9]','',1,0,'i') into v_num3 from dual;
+insert into sib_aak_number(num_val) values(v_num||v_num2||v_num3||v_num5||v_num6);
+commit;
+for rec in (select 1 ST, length(num_val) EN from sib_aak_number) loop
+declare
+a number :=rec.st;
+b number :=rec.en;
+begin
+  for rec2 in a .. b loop
+  v_i :=v_i+1;
+select substr((select s.num_val from sib_aak_number s), v_i, 1) into v_num4 from dual;
+insert into sib_aak_number2 (num_val) values(v_num4);
+end loop;
+commit;
+end;
+end loop;
+begin
+  select regexp_replace((select LISTAGG(num_val,',')  within group (order by num_val) from sib_aak_number2),'[,]','',1,0,'i') into v_num7 from dual;
+  dbms_output.put_line(v_num7);
+end;
+commit;
+end;
+
+
+---сколько места в tablespace (автоэкстенд) ГБ GB
+select tablespace_name,sum(sizes), sum(occupied), sum(free),round(sum(persent)/count(*),2) from
+(SELECT
+t.tablespace_name ,
+t.status,
+ROUND((MAX(d.bytes)/1024/1024) - (SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024),2) +ROUND(SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024,2) as sizes,
+ROUND((MAX(d.bytes)/1024/1024) - (SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024),2) as occupied,
+ROUND(SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024,2) as free,
+ROUND((ROUND((MAX(d.bytes)/1024/1024) - (SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024),2) /
+(ROUND((MAX(d.bytes)/1024/1024) - (SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024),2) +
+ROUND(SUM(decode(f.bytes, NULL,0, f.bytes))/1024/1024,2)) )*100,3) as persent,
+t.initial_extent ,
+t.next_extent ,
+t.min_extents ,
+t.max_extents ,
+t.pct_increase
+,SUBSTR(d.file_name,1,80)
+FROM DBA_FREE_SPACE f , DBA_DATA_FILES d , DBA_TABLESPACES t
+WHERE t.tablespace_name not in ('TEMP','UNDOTBS1') AND t.tablespace_name = d.tablespace_name AND f.tablespace_name(+) = d.tablespace_name
+ AND f.file_id(+) = d.file_id
+GROUP BY t.tablespace_name , d.file_name , t.initial_extent , t.next_extent , t.min_extents , t.max_extents ,t.pct_increase , t.status ORDER BY 1,3 DESC)
+group by tablespace_name order by 1
+
+---
+сколько места занимает таблица GB
+SELECT Segment_Name,
+SUM(Bytes / 1024 / 1024) MBytes
+FROM   DBA_Extents
+WHERE  Segment_Name like 'TESS_AAK'
+GROUP BY Segment_Name
+
+---кто блокирует таблицу
+select s.sid, u.OBJECT_NAME,s.MACHINE, s.status,u.object_type, u.status, s.TERMINAL, s.username, 
+s.SCHEMANAME, s.OSUSER, s.*  
+from v$session s, v$lock l, user_objects u
+where l.sid=s.sid
+and id1 = u.OBJECT_ID
+and lower(u.OBJECT_NAME) like '%tess%'
+
+
+---DANSE_RANK FIRST
+https://kbss.ru/blog/oracledb/277.html
+SELECT pack_id
+FROM   packs
+ORDER BY pack_id
+OFFSET 4 ROWS FETCH NEXT 20 PERCENT ROWS ONLY;
+
+select pack_id from 
+(select pack_id,rank() over (order by pack_id) as seq
+from packs)
+where seq between 5 and 10
+
+SELECT pack_id
+FROM   packs
+ORDER BY pack_id
+OFFSET 4 ROWS FETCH NEXT 4 ROWS ONLY;
+
+---rownum диапазон
+SELECT *
+FROM time_classes
+where 1=1--rtpl_rtpl_id = 0
+ORDER BY TMCL_ID
+OFFSET 3 ROWS FETCH NEXT 1 ROWS ONLY;
+
+
+---пропуск сиквенса
+select  pack_id
+from (SELECT  pack_id, LEAD(pack_id) over (order by pack_id) LAST_NUM
+FROM  packs)
+where pack_id+1 != LAST_NUM
+
+---вывести алфавит
+SELECT
+  CHR(ROWNUM+ASCII('A')-1)ch
+FROM dual t CONNECT BY ROWNUM <=26
+
+
+механизм снятия трейса, добавление
+execute immediate 'alter session set tracefile_identifier=''JOBS_POST_RATING''';
+execute immediate 'ALTER SESSION SET EVENTS ''10046 TRACE NAME CONTEXT FOREVER, LEVEL 12''';
+Трассировку можно снять как обычно для сессии. Информацию о запущенных сессиях можно увидеть в таблице HPRS_PROCESSES.
+
+
+---
+begin
+sql_engine.execute(
+' CREATE TABLE tevt_buffer(' ||
+' tvtb_id NUMBER(10),' ||
+' event_type NUMBER(5) NOT NULL,' ||
+' event_id NUMBER(10) NOT NULL,' ||
+' insert_date DATE DEFAULT SYSDATE NOT NULL ' ||
+' )' ||
+' PCTFREE &tevt_storage_data_pctfree ' ||
+' PCTUSED &tevt_storage_data_pctused ' ||
+' INITRANS &tevt_storage_data_initrans ' ||
+' TABLESPACE &tevt_tablespace ' ||
+' STORAGE ( INITIAL &tevt_storage_data_init ' ||
+' NEXT &tevt_storage_data_next ' ||
+' PCTINCREASE 0 ' ||
+' BUFFER_POOL &tevt_buffer_pool ' ||
+' ) '
+);
+exception
+when others
+then if sqlcode != -955 then raise;
+end if;
+end;
+---
+
+
+PROCEDURE create_sync_request(
+    p_subs_id subscribers.subs_id%TYPE,
+    p_srls_id   NUMBER,
+    p_srst_id   NUMBER,
+    p_sync_type NUMBER
+  )
+  IS
+    v_dummy NUMBER;
+  BEGIN
+    BEGIN
+    INSERT INTO m2mx_sync_users_queue(subs_subs_id, srls_srls_id, srst_srst_id, sync_type, navi_date)
+         VALUES( p_subs_id, p_srls_id, p_srst_id, p_sync_type, SYSDATE); 
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_dummy := log_common.insert_log_records(
+        mess => 'Error while creating sync request for subs_id = ' || p_subs_id || ' : ' || ', srls_id = ' || p_srls_id || ': ' ||SQLERRM,
+        appl => 15576,
+        apmt => log_common.errormsg);
+  END;
+  
+  END create_sync_request;
+  
+  
+---удаление дублей, дубли
+
+select * from trafics_by_directions t
+where t.rowid in (select rw from (select rowid as rw,
+min(rowid) over(partition by tmcl_tmcl_id) as min_rw
+from trafics_by_directions
+) where rw <> min_rw)
+
+delete from rtpl_srls_substitution t
+where t.rowid in (select rw from (select rowid as rw,
+min(rowid) over(partition by srls_srls_id,source_rtpl_id,result_rtpl_id,end_date) as min_rw
+from rtpl_srls_substitution
+) where rw <> min_rw)
+
+delete from trafics_by_directions t
+where t.rowid in (select rw from (select rowid as rw,
+min(rowid) over(partition by tmcl_tmcl_id, price_$, pphm_pphm_id, end_date, drct_drct_id, rpdr_rpdr_id, function_name, cur_cur_id, xtyp_xtyp_id, lcal_lcal_id, connection_$, enable_faf, scpr_scpr_id, pttp_pttp_id, srls_srls_id, cou_cou_id, rmop_rmop_id, aob_aob_id, rtcm_rtcm_id, 
+add_drct_id, add_rpdr_id, pack_pack_id, flag_cs, zone_zone_id, tfrg_tfrg_id, home_tfrg_id, home_rmop_id, rmtp_rmtp_id, rtpl_rtpl_id) as min_rw
+from trafics_by_directions
+) where rw <> min_rw)
+
+
+----дубли
+with t as (
+select rowid as rw, min(rowid) over(partition by name_r, mtxl_mtxl_id) as min_rw, rpdr_id, name_r, mtxl_mtxl_id, count(1) OVER (PARTITION BY name_r, mtxl_mtxl_id, drtp_drtp_id) count_id from rate_plan_directions
+where mtxl_mtxl_id in (select mtxl_mtxl_id from link_mtrx_histories))
+select * from t where count_id > 1
+and mtxl_mtxl_id not in (1,3)
+and rpdr_id in (
+select distinct rpdr_rpdr_id from trafics_by_directions where rpdr_rpdr_id in (
+with t as (
+select rpdr_id, name_r, mtxl_mtxl_id, count(1) OVER (PARTITION BY name_r, mtxl_mtxl_id, drtp_drtp_id) count_id from rate_plan_directions
+where mtxl_mtxl_id in (select mtxl_mtxl_id from link_mtrx_histories))
+select rpdr_id from t where count_id > 1
+and mtxl_mtxl_id not in (1,3)
+))
+and rw <> min_rw
+
+
+select count(1),srls_srls_id, source_rtpl_id,result_rtpl_id,end_date from rtpl_srls_substitution
+group by srls_srls_id, source_rtpl_id,result_rtpl_id,end_date
+having(count(1)) > 1
+
+через констрейнт 
+
+create table aak_exceptions(row_id rowid,
+                            owner varchar2(30),
+	                          table_name varchar2(30),
+                 		        constraint varchar2(30));
+								
+alter table rtpl_srls_substitution2
+add constraint TEST_AAK unique (srls_srls_id,source_rtpl_id,result_rtpl_id,end_date) 
+exceptions into aak_exceptions;
+
+delete from rtpl_srls_substitution2 where rowid in 
+(select row_id from our_exceptions);
+
+
+
+
+
+---имя пользователя 
+select utl_pack.get_user_name from dual
+select osuser from v$session where sid=(select sid from v$mystat where rownum=1);
+
+
+
+
+елси уже есть, то
+declare
+  l_exst number(1);
+  V_PACK_ID number(10);
+begin
+  select pack_id + 1
+    into V_PACK_ID
+    from (SELECT pack_id, LEAD(pack_id) over(order by pack_id) LAST_NUM
+            FROM packs)
+   where pack_id + 1 != LAST_NUM
+   ORDER BY pack_id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY;
+  select case 
+           when exists(select pack_id from packs where pack_id = V_PACK_ID)
+           then 1
+           else 0
+         end  into l_exst
+  from dual;
+
+  if l_exst = 1 
+  then
+    DBMS_OUTPUT.put_line('YES YOU CAN');
+  else
+    DBMS_OUTPUT.put_line('YOU CANNOT'); 
+    DBMS_OUTPUT.put_line(V_PACK_ID);
+  end if;
+end;
+
+
+---где используется первичный ключ
+
+select distinct sys.USER_CONSTRAINTS.CONSTRAINT_NAME, sys.USER_CONSTRAINTS.TABLE_NAME, sys.USER_CONSTRAINTS.CONSTRAINT_TYPE,sys.USER_CONS_COLUMNS.column_name  from 
+sys.USER_CONSTRAINTS inner join sys.USER_CONS_COLUMNS 
+on sys.USER_CONS_COLUMNS.table_name = sys.USER_CONSTRAINTS.table_name
+and
+sys.USER_CONS_COLUMNS.owner = sys.USER_CONSTRAINTS.owner
+where 1=1
+--and sys.USER_CONSTRAINTS.table_name = 'DETAIL_GROUPS'
+and sys.USER_CONSTRAINTS.constraint_type = 'P'
+and column_name like '%DETG%'
+
+
+
+------перенос start date и end date
+create or replace trigger aak_call_credits
+
+  before insert on call_credits
+  for each row
+
+declare
+  v_start_date date;
+  v_end_date date;
+begin
+  if :new.dcpl_dcpl_id = 391 then
+
+SELECT ADD_MONTHS(TRUNC(SYSDATE,'MM'),+1) into v_start_date FROM DUAL;
+SELECT last_day(ADD_MONTHS(TRUNC(SYSDATE,'MM'),+1)) into v_end_date FROM DUAL;
+    :new.start_date := v_start_date;
+    :new.end_date := v_end_date;
+  end if;
+
+exception
+  when others then null;
+end;
+
+
+----like из таблицы
+
+select * 
+from rate_plan_directions 
+join aak_zvoni on lower(name_r) like ('%' || lower(countries) || '%')
+
+
+--прокатить сиквенс
+
+declare 
+v_cnt number(10);
+v_cnt2 number(10);
+v_cnt3 number(10);
+v_cnt4 number(10);
+begin
+  select max(rtgr_id) into v_cnt2 from rating_groups;
+  select rtgr_seq.nextval into v_cnt from dual;
+  dbms_output.put_line(v_cnt);
+  dbms_output.put_line(v_cnt2);
+  v_cnt3 := v_cnt2 - v_cnt;
+  dbms_output.put_line(v_cnt3);
+  for rec in 1 .. v_cnt3 loop
+select rtgr_seq.nextval into v_cnt4 from dual;
+dbms_output.put_line(v_cnt4);
+end loop;
+end;
+
+или
+
+ALTER SEQUENCE seq INCREMENT BY 1
+
+---оставить только цифры
+
+SELECT regexp_replace('32#56*32+00abc;', '[^[:digit:]]') FROM dual
+
+
+select to_number(regexp_replace(REGEXP_SUBSTR('''tarif_class=''5212;''price=''384.7555', '[^;]+', 1, 2), '[^0-9.]')) as result_n from dual t
+
+
+
+----регулярное выражение убрать ABC или DEF
+select distinct regexp_replace(name_r,'.$|ABC|DEF','') from rate_plan_directions
+where navi_user like '%AAK%'
+and trunc(navi_date) = to_date('31.07.2018','dd.mm.yyyy')
+
+
+---убрать всё что в скобках
+select regexp_replace(regexp_replace('Бахрейн (мобил.)', ('[+ ., ()-]*'), ''),'мобил|сотовая','') from dual;
+
+
+----
+alter table RATE_PLAN_DIRECTIONS
+  add constraint RPDR_MTXL_CK
+  check (((DRTP_DRTP_ID=6 AND RTPL_RTPL_ID=0 AND PACK_PACK_ID = 0 AND MTXL_MTXL_ID>0) OR (DRTP_DRTP_ID<6 AND MTXL_MTXL_ID IS NULL)));
+  
+alter table RATE_PLAN_DIRECTIONS
+  add constraint RPDR_MTXL_FK foreign key (MTXL_MTXL_ID)
+  references MATRIX_LISTS (MTXL_ID);
+
+---EXCEPTION внутри LOOP
+begin
+  for rec in (select distinct * from aak_dr3
+where lower(countr) != lower(name_r)) loop
+begin
+    insert into cities (cit_id, cou_cou_id, name_e, name_r, navi_user, navi_date, prov_prov_id, prods_prods_id, cttp_cttp_id, visible_yn, del_user, del_date)
+    select cit_seq.nextval, rec.cou_id, translit(rec.name_r), rec.name_r, 'AAK', trunc(sysdate), null, null, null, 'Y', null, null
+    from dual;
+  exception
+  when others then dbms_output.put_line (rec.name_r||' '||rec.cou_id);
+    end;
+    end loop;
+end;
+
+
+---убрать пробелы
+regexp_replace(translit(ak.name_r),'[[:space:]]*','')
+
+
+SELECT trunc(dbms_random.VALUE(100000, 150000)) FROM dual;
+
+----восстановление таблицы
+FLASHBACK TABLE my_dropped_table TO BEFORE DROP;
+drop table PURGE ---purge удаляет навсегда
+
+----экранировать исключить
+SELECT * FROM rating_groups WHERE def LIKE '%\_N%' ESCAPE '\';
+
+----разделить по столбцам
+SELECT SUBSTR(t.anme_p, 1, INSTR(t.anme_p, ' ')-1) AS name_1,
+       regexp_replace(SUBSTR(t.anme_p, INSTR(t.anme_p, ' ')+1), ('[= ]*'), '') AS name_2
+FROM aak_example t 
+SELECT SUBSTR(t.anme_p, 1, INSTR(t.anme_p, '=')-1) AS name_1,
+       SUBSTR(t.anme_p, INSTR(t.anme_p, '=')+1) AS name_2
+FROM aak_example t
+
+
+--создать сиквенс
+create sequence author_seq
+minvalue 1
+maxvalue 9999999999999999999999999999
+start with 1
+increment by 1
+cache 20
+order;
+
+
+---рандомная дата
+with t as (SELECT '201808'||LPAD(trunc(dbms_random.VALUE(1, 32)), 2, '0')||
+LPAD(trunc(dbms_random.VALUE(0, 60)), 2, '0')||
+LPAD(trunc(dbms_random.VALUE(0, 60)), 2, '0') random_val 
+FROM dual 
+CONNECT BY LEVEL <= 10000)
+select distinct random_val
+from t
+FETCH FIRST 1000 ROWS ONLY;
+
+
+---вывести рядом два столбца из разных таблиц
+SELECT a.subs_id, duration, pack_id, b.RANDOM_DATE
+  FROM (SELECT rownum rn
+          FROM dual
+        CONNECT BY LEVEL <= greatest((SELECT COUNT(*) FROM aak_sintetic),
+                                     (SELECT COUNT(*) FROM aak_sintetic2))) pivot,
+       (SELECT rownum rn, subs_id, duration, pack_id FROM aak_sintetic) a,
+       (SELECT rownum rn, RANDOM_DATE FROM aak_sintetic2) b
+ WHERE pivot.rn = a.rn(+) AND
+       pivot.rn = b.rn(+)
+
+	   
+	   
+	   
+select value
+from
+(
+    (
+        select
+            'a' v1,
+            'e' v2,
+            'i' v3,
+            'o' v4,
+            'u' v5
+        from dual
+    )
+    unpivot
+    (
+        value
+        for value_type in
+            (v1,v2,v3,v4,v5)
+    )
+)
+
+
+select decode(pivot.i, 1,a, 2,b, 3,c) as r
+  from
+   (SELECT '1' a, '2' b, '3' c FROM dual),
+   (select rownum as i from dual connect by level <= 3) pivot
+
+
+	   
+----выбор каждой второй пятой пятидесятой строки
+select * from aak_cdr
+where  rowid in
+(select rid
+from   (select mod(row_number() over(order by null), 50) as rn, rowid as rid from   aak_cdr) x
+where  x.rn = 0)
+
+
+----замена символа
+select REPLACE(',,,,,,30,,,,,', ',30,', ',14,') from dual
+
+---- ID1 = ID2 разделить на столбцы
+SELECT SUBSTR(t.anme_p, 1, INSTR(t.anme_p, ' ')-1) AS name_1,
+       regexp_replace(SUBSTR(t.anme_p, INSTR(t.anme_p, ' ')+1), ('[= ]*'), '') AS name_2
+FROM aak_example t 
+---или
+SELECT SUBSTR(t.anme_p, 1, INSTR(t.anme_p, '=')-1) AS name_1,
+       SUBSTR(t.anme_p, INSTR(t.anme_p, '=')+1) AS name_2
+FROM aak_example t 
+
+
+----выбираем всё по 23 запятую и очищаем всё что после неё
+select LTRIM(REGEXP_SUBSTR(SUBSTR(cdr, 23),'^[^,]*')) from aak_cdr3870
+
+--кодировки
+Instant Client Light supports the following client character sets:
+Single-byte
+US7ASCII
+WE8DEC
+WE8MSWIN1252
+WE8ISO8859P1
+Unicode
+UTF8
+AL16UTF16
+AL32UTF8
+Instant Client Light can connect to databases having one of these database character sets:
+US7ASCII
+WE8DEC
+WE8MSWIN1252
+WE8ISO8859P1
+WE8EBCDIC37C
+WE8EBCDIC1047
+UTF8
+AL32UTF8
+
+
+---аналитическая функция (суммирует duration; агрегируют данные порциями (partitions; группами), количество и размер которых можно регулировать специальной синтаксической конструкцией.) 
+with t as (
+select LTRIM(REGEXP_SUBSTR(SUBSTR(cdr, 25),'^[^,]*')) as aa_id from aak_cdr3870)
+SELECT aa_id, 
+SUM(aa_id) OVER (PARTITION BY aa_id) sum_aa_id    
+FROM t;
+
+
+with t as (
+select pack_pack_id, NUMBER_HISTORY, count(1), max(NUMBER_HISTORY) over (partition by pack_pack_id) max_number_hist from trafic_histories where 
+pack_pack_id in (3723,3719,3720,3721,3722,3724,3725,3726,3870)
+and rtpl_rtpl_id = 217 and end_date > SYSDATE
+and srls_srls_id = 2900
+and rtgr_rtgr_id = 30
+and home_tfrg_id = 60899
+group by pack_pack_id, NUMBER_HISTORY
+)
+select t.* from t t
+where number_history = max_number_hist
+
+---показывает постепенно нарастающую сумму
+with t as (
+select LTRIM(REGEXP_SUBSTR(SUBSTR(cdr, 25),'^[^,]*')) as aa_id from aak_cdr3870)
+SELECT aa_id, 
+SUM(aa_id) OVER (ORDER BY aa_id rows between unbounded preceding and 1 preceding) sum_aa_id    
+FROM t;
+
+---XML TYPE
+select * from aak_cdr3731, xmltable(nvl(rtrim(regexp_replace(cdr||' ', '(\S+)\s+', '"\1",'), ', '), '1 to 0'))
+
+---обратный LISTAGG
+with digit_str as (
+  select '10,20,30,40,50,100' as str
+  from  dual
+)
+select regexp_substr(str, '(\d+)(,|$)', 1, rownum, 'c', 1) ok
+from digit_str
+connect by level <= regexp_count(str, '\d+(,|$)')
+или
+with digit_str as (
+select 'И-Нск-1,И-Нск-2,И-Нск-ОгрТВ' as str from dual
+)
+select regexp_substr(str, '([^,]+)(,|$)', 1, rownum, 'c', 1) ok
+from digit_str
+connect by level <= regexp_count(str, '[^,]+(,|$)')
+
+-----ЭТОТ
+with digit_str as (
+  select '10,20,30,40,50,100' as str
+  from  dual
+)
+select regexp_substr(str, '(\d+)(,|$)', 1, rownum, 'c', 1) ok
+from digit_str
+connect by level <= regexp_count(str, '\d+(,|$)')
+---и этот
+
+select d.*, y.* from aak_dir_mn_def d, xmltable(nvl(rtrim(regexp_replace(CODE_OP||' ', '(\S+)\s+', '"\1",'), ', '), '1 to 0')) y
+
+select t1.*,dbms_xmlgen.convert(xmlcast(column_value as varchar2(100)),1) column_value
+from aak_dir_mn_def t1, xmltable(nvl(rtrim(regexp_replace(dbms_xmlgen.convert(CODE_OP)||' ', '(\S+)\s+', '"\1",'), ', '), '1 to 0')) x
+
+
+----всё что после 13 запятой delimeter
+select regexp_SUBSTR(CDR,'[^,]+',1,13,'i') from aak_cdr3731;
+
+---отключить констрейнт 
+begin
+  for rec in (select * from dba_constraints where constraint_name like 'MATR_DIR_HIST_UK') loop
+  execute immediate 'ALTER TABLE '||rec.table_name||' DISABLE CONSTRAINT '||rec.constraint_name;
+end loop;
+end;
+---включить констрейнт
+begin
+  for rec in (select * from dba_constraints where constraint_name like 'MATR_DIR_HIST_UK') loop
+  execute immediate 'ALTER TABLE '||rec.table_name||' ENABLE CONSTRAINT '||rec.constraint_name;
+end loop;
+end;
+
+
+
+----проверка есть ли колонка
+begin
+  select count(*) into v_exist from user_tab_cols where table_name=v_table_name and 
+    column_name=v_column_name;
+  if v_exist > 0 then
+    execute immediate 'Alter table '||v_column_name||' add ('||v_column_name ||'   '||v_data_type||')';
+  end if;
+end;
+
+
+----джоб job 10 потоков
+
+declare
+v_cnt1 number := 10;
+v_cnt2 number;
+begin
+  for rec in (with digit_str as (
+  select '0,1,2,3,4,5,6,7,8,9' as str
+  from  dual
+)
+select regexp_substr(str, '(\d+)(,|$)', 1, rownum, 'c', 1) ok
+from digit_str
+connect by level <= regexp_count(str, '\d+(,|$)')) loop
+select rec.ok into v_cnt2 from dual;
+sys.dbms_scheduler.create_job(job_name=> 'AAK_CHARG_'||rec.ok,
+job_type=> 'PLSQL_BLOCK',
+job_action  => 'begin AAK_CHARGE('||v_cnt1||','||v_cnt2||');end;',
+start_date  => sysdate,
+end_date=> to_date(null),
+job_class   => 'DEFAULT_JOB_CLASS',
+enabled => true,
+auto_drop   => true,
+comments=> '');
+
+end loop;
+end;
+
+
+oranfsodm12.dll отсутствует
+in C:\oracle\Kosterin\product\12.1.0\client_1\BIN folder, copying oraodm12.dll and renaming it to oranfsodm12.dll could be a fix
+
+----поиск по схеме
+
+
+
+with 
+  sql_text as
+    (
+       select /*+ materialize*/ 'select '''||owner||'.'||table_name||
+              ''' as VALUE /*, 1 as flag*/ from dual where exists ( select null from '||
+              owner||'.'||table_name||' where '|| rtrim(replace(max(sys_connect_by_path('upper('||
+              column_name||')  like upper(''%'||'????'||'%'') OR ',',')) 
+               keep(dense_rank last order by level),','),'OR ')||')' as sql_text
+         from (
+                select '"'||c.table_name||'"' as table_name, 
+                       '"'||c.column_name||'"' as column_name, 
+                       '"'||c.owner||'"' as owner,
+                       row_number() over(partition by c.owner, c.table_name order by c.column_id) as rn
+                  from all_tab_columns c, all_objects o
+                 where data_type in ('CHAR','VARCHAR2')
+                   and c.table_name = o.object_name
+                   and o.object_type = 'TABLE'
+                   and o.owner = c.owner
+                   and o.owner = upper('BIS')
+              ) v_tab_col
+        start with rn = 1 
+       connect by prior table_name = table_name
+           and prior owner = owner
+           and prior rn = rn - 1
+         group by owner, table_name
+    ) 
+Select *
+  from (
+         select  extractvalue
+                  (dbms_xmlgen.getxmltype
+                    (sql_text)
+                    , '/ROWSET/ROW/VALUE'
+                  ) as value
+           from sql_text
+       )
+ where value is not null
+
+---Читаем ORA ошибки из PL SQL
+////НАЧАЛО
+--любым способом создаем directory:
+declare
+  alert_dir_name varchar2(2000);
+begin
+  SELECT value into alert_dir_name FROM v$parameter WHERE name='background_dump_dest';
+  begin
+    execute immediate 'DROP DIRECTORY alert_dir';
+  exception
+    when others then
+      if sqlcode = -4043 then null;
+      else raise;
+      end if;
+  end;
+  execute immediate 'CREATE DIRECTORY alert_dir AS '''||alert_dir_name||'''';
+end;
+/
+ 
+PL/SQL procedure successfully completed
+
+--Дальше создаем табличку
+ 
+create table alert_log (str varchar2(2000))
+organization external
+(default directory alert_dir
+access parameters (records delimited by newline)
+location ('alert_<put your SID here>.log') -- я поленился писать запрос к v$instance :)
+);
+ 
+Table created
+
+-- После этого можно спокойно пользоваться любым удобным способом:
+
+select * from alert_log where rownum < 10;
+
+////КОНЕЦ
+
+удалить первый знак
+substr(p_number_b,2)
+
+удалить последний символ
+regexp_replace(p_number_b,'.$','')
+
+удалить символы до запятой 
+select substr('Алтайский Край, моб. связь', 1, instr('Алтайский Край, моб. связь',',')-1) from dual
+
+удалить символы до первой ;
+regexp_substr(cdr_udf, '^[^;]+')
+
+
+select REGEXP_SUBSTR (':DDD:KKK:SSSS:XXXX'
+              , '[^:]+'
+              , 1
+              , 3
+              ) from dual
+
+
+Flashback Query — ретроспективные запросы Oracle (откат)
+select * from discount_thread_volumes as of scn timestamp_to_scn(sysdate-INTERVAL '10' SECOND)
+
+
+------AUTHID CURRENT_USER
+Эта конструкция, добавленная в объявление процедуры, указывает на то, что при вызове процедура будет выполняться с привилегиями пользователя вызвавшего ее
+CREATE PROCEDURE count_authors 
+(num_books OUT NUMBER) 
+AUTHID CURRENT_USER 
+IS 
+SELECT COUNT(*) INTO num_books 
+FROM author; 
+END;
+
+
+DECLARE
+type dept_record_type is RECORD
+(dno NUMBER, nema VARCHAR2(20));
+begin
+select deptno, dname into dept_rec from dept where deptno=10;
+end;
+
+---ошибки пользователя (инвалидация и т.д.)
+select * From user_errors_ae (или SHOW ERRORS из cmd; показывает warning`и в процедуре и т.д.) SHOW ERRORS PROCEDURE PROC1
+
+select ceil(-34.7)-trunc(-4.56)/(floor(4/6-3)+round(31/15)) from dual
+ceil - большее целое число
+floor - меньшее
+
+
+JOIN (NATURAL JOIN; EQUI JOIN; CROSS JOIN)
+https://blog.jooq.org/2016/07/05/say-no-to-venn-diagrams-when-explaining-joins/
+
+
+UNION - объединить
+INTERSECT - пересечение 
+EXCEPT- вычитание
+
+(+) = LEFT JOIN
+
+
+ЗАМЕНИТЬ
+
+SELECT distinct
+(case when DRCT_NAME like '%моб. связь%' then REPLACE(DRCT_NAME, ', моб. связь', '')
+when DRCT_NAME like '%, фикс.связь%' then REPLACE(DRCT_NAME, ', фикс.связь', '')
+when DRCT_NAME like '% ABC%' then REPLACE(DRCT_NAME, ' ABC', '')
+when DRCT_NAME like '% DEF%' then REPLACE(DRCT_NAME, ' DEF', '')
+else DRCT_NAME
+                    end),
+                    price_$
+FROM aak_tmp3;
+
+
+---LIKE цифры
+select to_char(r.name_1) as CHAR_1, r.* from rate_plan_directions r 
+where REGEXP_LIKE (r.name_1, '^[0-9]+')
+
+
+
+----HTML парсинг
+DECLARE
+      html VARCHAR2(1000) := '<body>           
+         <table border="1">             
+           <tr>               
+                <td><b>A1</b></td>               
+                <td><i>B1</i></td>             
+           </tr>             
+           <tr>                 
+                <td><b>A2</b></td>               
+                <td><i>B2</i></td>             
+           </tr>           
+         </table>         
+       </body>';
+BEGIN
+  FOR r IN
+  (SELECT rownum rn,
+    td
+  FROM xmltable('*/table/tr' passing xmltype(html) columns td xmltype path '.')
+  )
+  LOOP
+    FOR c IN
+    (SELECT cell
+    FROM xmltable('*/td/.' passing r.td columns cell VARCHAR(200) path '.')
+    )
+    LOOP
+      dbms_output.put_line('Row ' || r.rn || ': ' || c.cell);
+    END LOOP;
+  END LOOP;
+END;
+
+
+----диапазон
+create or replace procedure prc_test(p_period varchar2) is
+[more]
+begin
+   for t in 
+      (
+      select regexp_substr(ll,'[^-]+',1,1) l1 , regexp_substr(ll,'[^-]+',1,2) l2 , ll.* -- регулярное выражение для значений внутри диапазона
+      from 
+      (
+      select  regexp_substr(p_period,'[^,]+',1,level) ll -- реуглярное выражение для работы с диапазоном
+       from dual
+      connect by level <=  REGEXP_COUNT(p_period,',')+1
+      ) ll
+      ) loop 
+        for i in t.l1..t.l2 loop
+          dbms_output.put_line(i); -- вывод значений
+        end loop;
+        dbms_output.put_line(''); -- пустая строка для отделения диапазона
+      end loop;
+end prc_test;
+begin
+  -- Test statements here
+  prc_test('1-5,15-20,33-38');
+end;
+
+
+Дни месяца
+select TO_CHAR(add_months(to_date('20150101','yyyymmdd'),-rownum), 'MONTH',
+  'NLS_DATE_LANGUAGE = RUSSIAN') as mmm, 
+  TO_CHAR(add_months(to_date('20150101','yyyymmdd'),-rownum), 'mm') as mm 
+from (Select Level From Dual Connect By Level <= 12)
+
+имя хоста / сервера
+select HOST_NAME from v$instance;
+
+like из списка
+select * from directions where regexp_like(name_r,
+'^Беларусь%*|^Кыргызстан%*|^Таджикистан%*|^Узбекистан%*|^Туркменистан%*|^Молдова%*|^Азербайджан%*|^Армения%*|^Казахстан%*'
+)
+или
+regexp_like(name,'^sasho*|^rags*|^shashi*');
+
+
+BASH import
+
+]
+#!/bin/sh
+
+LOAD_DIR=/opt/app/home/ocs/number_pool
+ORACLE_HOME=/usr/lib/oracle/12.2/client64/bin
+NLS_LANG=AMERICAN_AMERICA.CL8ISO8859P5
+LOG_FILE=$LOAD_DIR/number_pool.log
+TABLE=number_pool_values
+TNS_ADMIN=$LOAD_DIR
+FILE_TMP=$LOAD_DIR/log.txt
+
+export ORACLE_HOME NLS_LANG TNS_ADMIN
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME/lib
+export PATH=$PATH:/usr/lib/oracle/12.2/client64/bin
+
+
+if [ -f $LOAD_DIR/import.lock ];
+then
+echo `date`" Already running"
+exit 0
+fi
+
+touch $LOAD_DIR/import.lock
+
+
+$ORACLE_HOME/sqlplus bis/employer@ALPHA <<HERE #> /dev/null 2>&1 <<HERE
+SET TRIMSPOOL ON
+SET TRIMOUT ON
+SET TERMOUT OFF
+SET PAGESIZE 0
+SET WRAP OFF
+set sqlprompt ''
+
+SPOOL $FILE_TMP
+
+select 1 from dual;
+
+HERE
+
+
+rm $LOAD_DIR/import.lock
+exit 0
+
+
+
+
+----строки в столбик (сначала RN проставляются, затем decode)
+
+WITH T AS (
+SELECT id_cen
+      ,MIN(decode(rn,1,v_4)) v_41
+      ,MIN(decode(rn,1,v_2)) v_21
+      ,MIN(decode(rn,2,v_4)) v_42
+FROM (SELECT ID_CEN, V_1, V_2, V_3, V_4, row_number() over (PARTITION BY id_cen ORDER BY id_cen) rn FROM aak_tmp_v where v_2 not like 'ITEM_BDR' order by ID_CEN, v_1, v_2)
+GROUP BY id_cen	
+)
+
+SELECT 
+ds.detg, 
+tt.* FROM T tt
+left join aak_tmp_ds ds on svc = v_41
+
+
+----пакет и его содержимое
+select * from all_source where name like '%RTK%GENID%UTILS%' and type like '%BODY%'
+
+
+
+символы до точки и после (3 меняем на 1 и 2)
+SELECT REGEXP_SUBSTR('12;125896547;0101' , '[^;]+' , 1 , 3 ) FROM DUAL ;
+
+оставить между символами скобка и двоеточие
+SELECT REGEXP_SUBSTR('Gupta, Abha (01792:', '\((.+)\:', 1, 1, NULL, 1) FROM dual;
+
+
+вытащить год
+select extract(year from load_dttm) from dual

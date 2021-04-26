@@ -1,0 +1,1 @@
+C:\oracle\Kosterin\product\12.1.0\client_1\BIN\sqlldr.exe userid=BIS/employer@ALPHA ERRORS=0 control=loader.ctl

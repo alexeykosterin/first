@@ -1,0 +1,187 @@
+CREATE OR REPLACE PROCEDURE FOR_METRICS_IUM2
+
+--alexey.kosterin
+
+IS
+
+  val   NUMBER:=0;
+
+  ik    varchar2(100);
+
+  ip    varchar2(100);
+
+  n_D number;
+
+BEGIN
+
+  select TO_CHAR(SYSDATE,'hh24') into n_D from dual;
+
+if n_D between 9 and 20 then
+
+execute immediate 'truncate table bis.sib_dir_list2';
+
+bis.sib_dir_java2.get_file_strings('/chr1/chr_center/iummon2.txt');
+
+COMMIT;
+
+ 
+
+for rec in (select * from for_metrics t) loop
+
+select max(to_number(substr(filename, instr(filename, ' ')+2, length(filename)))) into val
+
+from bis.sib_dir_list2 t
+
+where t.filename like rec.mtrc_key||'%';
+
+select rec.mtrc_key into ik from dual;
+
+if val is null then val := 9999; end if;
+
+--dbms_output.put_line(rec.mtrc_key);
+
+execute immediate 'update for_metrics ta set ta.mtrc_value = ' || val || ' where ta.mtrc_key like :ik' using ik;
+
+end loop;
+
+ 
+
+for rec2 in  
+
+(
+
+select * from for_metrics t
+
+) loop
+
+if rec2.mtrc_name like '%занято%' and rec2.mtrc_defer_level=0 and rec2.mtrc_value >85  then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ОТКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||'%', TRUNC(sysdate+1*1/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 1 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+if rec2.mtrc_name like '%занято%' and rec2.mtrc_defer_level=1 and rec2.mtrc_value <85  then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ЗАКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||'%', TRUNC(sysdate+1*1/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 0 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+if rec2.mtrc_name like '%старые файлы%' and rec2.mtrc_defer_level=0 and rec2.mtrc_value >0 then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ОТКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||' шт', TRUNC(sysdate+1*1/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 1 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+if rec2.mtrc_name like '%старые файлы%' and rec2.mtrc_defer_level=1 and rec2.mtrc_value =0  then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ЗАКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||' шт', TRUNC(sysdate+1*1/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 0 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+if rec2.mtrc_name like '%файлов в каталоге%' and rec2.mtrc_defer_level=0 and rec2.mtrc_value >0  then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ОТКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||' шт', TRUNC(sysdate+1*2/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 1 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+if rec2.mtrc_name like '%файлов в каталоге%' and rec2.mtrc_defer_level=1 and rec2.mtrc_value =0  then
+
+  for rec3 in (select MSISDN from FOR_METRICS_IUM_MSISDN) loop
+
+INSERT INTO BIS.SMS_OUT (SMSO_ID, SMST_SMST_ID, MSISDN, MESSAGE, NAVI_DATE)
+
+VALUES (BIS.SMSO_SEQ.NEXTVAL, 10004, rec3.MSISDN, '[ЗАКРЫТО] '||rec2.mtrc_name||' '||rec2.mtrc_value||' шт', TRUNC(sysdate+1*2/24/60, 'mi'));
+
+select rec2.mtrc_key into ip from dual;
+
+execute immediate 'update for_metrics tq set tq.mtrc_defer_level = 0 where tq.mtrc_key like :ip' using ip;
+
+commit;
+
+end loop;
+
+end if;
+
+ 
+
+end loop;
+
+commit;
+
+execute immediate 'truncate table bis.sib_dir_list2';
+
+end if;
+
+commit;
+
+end;
