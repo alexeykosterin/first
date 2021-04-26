@@ -1,0 +1,258 @@
+﻿find . -type f | xargs grep -H ''
+
+[ -a FILE ] Правда елси FILE существует.
+[ -b FILE ] Правда елси FILE существует и это специальный блоковый файл.
+[ -c FILE ] Правда елси FILE существует и это специальный знаковый файл.
+[ -d FILE ] Правда елси FILE существует и это директория.
+[ -e FILE ] Правда елси FILE существует.
+[ -f FILE ] Правда елси FILE существует и это регулярный файл.
+[ -g FILE ] Правда елси FILE существует и установлен SGID бит.
+[ -h FILE ] Правда елси FILE существует и это символический ссылка.
+[ -k FILE ] Правда елси FILE существует и второй промежуточный бит округления установлен.
+[ -p FILE ] Правда елси FILE существует и это named pipe (FIFO).
+[ -r FILE ] Правда елси FILE существует и он доступен на чтение.
+[ -s FILE ] Правда елси FILE существует и больше нуля.
+[ -u FILE ] Правда елси FILE существует и SUID (set user ID) бит установлен.
+[ -w FILE ] Правда елси FILE существует и он доступен на запись.
+[ -x FILE ] Правда елси FILE существует и он доступен на исполнение.
+[ -O FILE ] Правда елси FILE существует принадлежит существующему пользователю
+[ -G FILE ] Правда елси FILE существует принадлежит существующей группе.
+[ -L FILE ] Правда елси FILE существует и это символический ссылка.
+[ -N FILE ] Правда елси FILE существует и был изменен с тех пор как был прочитан.
+[ -S FILE ] Правда елси FILE существует и это сокет.
+[ FILE1 -nt FILE2 ] Правда, если файл FILE1 изменялся чаще чем FILE2, или есои FILE1 существует, а FILE2 нет.
+[ FILE1 -ot FILE2 ] Правда, если файл FILE1 старше чем FILE2, или FILE1 существует, а FILE2 нет.
+[ FILE1 -ef FILE2 ] Правда, если FILE1 и FILE2 относятся к одному устройству и номеру инода.
+[ -o OPTIONNAME ] Правда если shell опция "OPTIONNAME" включена.
+[ -z STRING ] Правда если длинна "STRING" равна 0.
+[ -n STRING ] or [ STRING ] Правда если длинна "STRING" не равна 0.
+[ STRING1 == STRING2 ] Правда если выражения эквивалентны. 
+[ STRING1 != STRING2 ] Правда если выражения не эквивалентны.
+[ STRING1 < STRING2 ] Правда если "STRING1" лексикографически упорядоченно до "STRING2".
+[ STRING1 > STRING2 ] Правда если "STRING1" лексикографически упорядоченно после "STRING2".
+[ ARG1 OP ARG2 ] "OP" это один из следующих параметров -eq, -ne, -lt, -le, -gt or -ge. Эти бинарные арифметические 
+операторы возвращают результат "правда" если "ARG1" эквивалентен(-eq), не эквивалентен(-ne), меньше чем(-lt), 
+меньше или эквивалентен(-le), больше чем(-gt), больше или эквивалентно(-ge) к "ARG2".  
+[ ! EXPR ] правда если выражение EXPR не справедливо.
+[ ( EXPR ) ] возвращает значение EXPR. Это может быть использовано для изменения приоритета операторов.
+[ EXPR1 -a EXPR2 ] правда, если оба выражения EXPR1 и EXPR2 справедливы.
+[ EXPR1 -o EXPR2 ] правда, если хотя бы одно выражение EXPR1 или EXPR2 справедливы.
+==            eq           равно
+!=            ne           не равно
+<             lt           меньше
+>             gt           больше
+<=            le           меньше или равно
+>=            ge           больше или равно
+
+
+---анализ лога
+FILE=HRS_RT_current_27691.log
+T1=`sed -n '/09\/05\/18 20:49:56/=' $FILE`;
+echo $T1 > txt_v1.txt
+#TV1=`cat txt_v1.txt | awk '/1/ -F " " {print $1}'`
+TV1=`cat txt_v1.txt | cut -d ' ' -f1`
+T2=`sed -n '/09\/05\/18 20:50:00/=' $FILE`;
+echo $T2 > txt_v.txt
+TV2=`cat txt_v.txt | rev | awk '/1/ -F " " {print $1}' |rev`
+#echo $TV2 > txt_v2.txt
+echo $TV1
+echo $TV2
+#awk 'END { print }'.
+sed -n ''$TV1','$TV2'p' $FILE
+
+--timestamp
+T1=`sed -n '/2018.05.23 21:18:05/=' spisok.txt`;T2=`sed -n '/2018.05.23 21:18:57/=' spisok.txt`;sed -n ''$T1','$T2'p' spisok.txt
+
+
+#!/bin/sh
+DIR=~/hrs/hrs_102/log
+A=`find -type f -name "*log" -print0 |xargs -0 stat -c"%Y %n"|sort -k1,1nr|head -1|sed 's_^[^ ]\+ __'`
+B=`basename $A`
+cat $B | grep ready
+exit 0
+
+
+read -p "Press enter to continue" 
+
+
+---пароль со звездочками
+#!/bin/bash
+
+PASSWORD=""
+
+while
+read -s -n1 BUFF
+[[ -n $BUFF ]]
+do
+    # 127 - backspace ascii code 
+    if [[ `printf "%d\n" \'$BUFF` == 127 ]]
+    then
+	PASSWORD="${PASSWORD%?}"
+	echo -en "\b \b"
+    else
+	PASSWORD=$PASSWORD$BUFF
+	echo -en "*"
+    fi
+done
+
+echo
+echo $PASSWORD
+
+exit 0
+
+-grep номер строки
+cat -n file | grep "^\s*number" | head -1
+
+---обрезать до :
+sed 's|.*:||' txt.txt > txt2.txt
+sed 's|.*.txt:||' txt.txt > txt2.txt
+cat txt2.txt | rev | sed 's|.*"||' | rev > txt3.txt
+
+---grep с номерами строк; номер строки
+cat file.txt | grep -n 
+
+---заменить
+sed 's/foo/bar/'
+
+---равен / не равен
+awk -F, '{if ($7 != $27) print $0}' trace_MN9.brt | wc -l
+
+---split
+split -a 1 -d -l 3 test.txt test.txt.part
+
+----delimeter/separator
+cat 2.txt | cut -d '"' -f1 
+
+---AWK LIKE
+awk -F, '{if ($7 ~ /7/ ) print $0}' \[504\]3799321_1220_mg_08_new.txt
+
+
+---из txt1 исключить txt и записать в txt2
+sort -u txt1.txt | sort - txt.txt | uniq -u | sort -o txt2.txt
+
+
+netstat -nap | grep 49900| grep 5672 | wc -l
+
+
+версия ОС
+cat `ls /etc/*{-,_}{release,version} 2>/dev/null`
+
+
+парсинг логов
+#!/bin/sh
+DIR=~/DISTRIB/AAK
+cd $DIR
+rm -f itog.txt
+cat $DIR/*log | grep -n "CamelHttpUri\|CamelHttpResponseCode : 200" -A 2 > t1.txt #---grep или
+cat t1.txt | grep "{" > t2.txt
+cat t1.txt | grep "CamelHttpUri" > t3.txt
+SEQ=`cat t3.txt | wc -l`
+N=0
+while [ $N -lt $SEQ ]; do
+let N=$N+1 #---прибавить сумма 
+AA=`cat t2.txt | head -n $N | tail -1 | cut -d ':' -f24 | cut -d "\"" -f2 | cut -d "=" -f2`
+BB=`cat t2.txt | head -n $N | tail -1 | cut -d ':' -f28 | cut -d "\"" -f2`
+CC=`cat t2.txt | head -n $N | tail -1 | cut -d ':' -f37 | cut -d "\"" -f2 | cut -d "=" -f2`
+NUM=`cat t2.txt | head -n $N | tail -1 | cut -d '-' -f1`
+NUM_LOGIN=`cat t3.txt | head -n $N | tail -1 | grep CamelHttpUri | cut -d ':' -f1`
+LOGIN=`cat t3.txt | head -n $N | tail -1 | grep CamelHttpUri | cut -d "=" -f2`
+echo "строка $NUM_LOGIN" >> itog.txt
+echo $LOGIN >> itog.txt
+echo "строка $NUM" >> itog.txt
+echo $AA $BB $CC | sed s/'\\'//g >> itog.txt
+printf "\n" >> itog.txt #---вставить перенос строки
+done
+rm -f t1.txt
+rm -f t2.txt
+rm -f t3.txt
+exit 0
+
+подключить файл с переменными
+source config.sh
+
+
+ln -s /opt/app/ocs/HRS_RT ~/HRS
+
+
+
+
+
+#!/usr/bin/env bash
+echo -n "Have you warned colleagues that you are restarting HRS? (YES/NO):"
+read YES
+if [ "$YES" != 'YES' ];then
+read -p "Why not?"
+exit 1
+else
+app_name="rating_server"
+app_dir="/opt/hrs/hrs_102/bin"
+cd "${app_dir}"
+if [ $(find -iname '*.pid') ]; then
+    kill -s TERM $(cat $(find -iname '*.pid'))
+    echo "${app_name} killed"
+    rm $(find -iname '*.pid')
+else
+    echo 'Nothing to kill'
+fi
+fi
+
+##########МАССИВ
+echo -n "ВВедите имя лога для анализа: "
+read log
+list=(jg_job_root.jg_call_date
+rg_result_root.rg_a_subscriber.rg_rtpl_id
+rg_result_root.rg_properties.rg_spg_rtpl_id
+)
+
+#echo ${list[0]} ${list[1]}
+
+
+for arg in ${list[*]}
+do
+cat $log | grep $arg
+done
+###########
+
+оставить первые 2 символа
+cat *.txt | grep "00,32" | cut -d ',' -f7 | cut -c1-2 | sort -u | uniq -u
+
+
+Удалить вообще все пробелы и только пробелы:
+
+sed s/' '//g -i <file_name>
+Все пробелы и символы табуляции так:
+
+sed s/'\s'//g -i <file_name>
+Только символы табуляции так :
+
+sed s/'\t'//g -i <file_name>
+
+s/// - замена
+после «s/ и перед \{ указан символ, в данном случае пробел, ' ' - можно и так
+\{2,5\} - число повторений блоков символов, указанные перед интервалом
+\ - экранирование, что бы { и } не рассматривались как конструкции интерпретатоа (bash)
+g - все включения в файла
+-i - работать с файлом
+
+
+удалить перенос строки
+cat $F |tr -d '\n'
+
+замена ^M на перевод строки
+cat out.txt | tr '\r' '\n'> out1.txt 
+tr '\r' '\n'< $DIR_NUMBER/stc_ts_numbers.csv > out_number.csv
+
+
+самый новый свежий файл в каталоге
+unset -v latest
+for file in "$DIR_NUMBER"/*; do
+    [[ $file -nt $latest ]] && latest=$file
+    echo $file
+done
+
+вырезать первую строку
+sed '1d'
+
+
+grep строк только с цифрами
+| grep -E -w '[0-9]+'
