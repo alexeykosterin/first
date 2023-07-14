@@ -1,3 +1,1 @@
-@mode con cp select=1251
-@sqlplus "bis/employer@ALPHA"
-@exit
+for /F "tokens=1-2 delims=." %%i in (C:\Users\%username%\Desktop\SPOOL\tables.txt) do idsoratest.bat %%i %%j
