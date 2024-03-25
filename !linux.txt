@@ -256,3 +256,30 @@ sed '1d'
 
 grep строк только с цифрами
 | grep -E -w '[0-9]+'
+
+
+#!/usr/bin/expect
+cd /home/ess_tms/temp/JTMSF/
+set timeout -1    
+ 
+set USER user
+set PASS etl
+set HOST mon_serveur
+set INF_PATH_OUT /toto/data/mutualise/out/tms/temp_files/
+ 
+spawn sftp $USER@$HOST
+ 
+expect password:
+send "$PASS\r"
+ 
+expect sftp>
+send "cd $INF_PATH_OUT/JTMSF\r" 
+ 
+expect sftp>
+send "get *.txt\r"
+ 
+expect sftp>
+send "exit\r"
+ 
+rm -f /home/rep/temp/JTMSF/*.gz
+mv /home/rep/temp/JTMSF/toto.txt /home/rep/temp/JTMSF/titi.txt
